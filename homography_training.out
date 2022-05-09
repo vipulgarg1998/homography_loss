@@ -1,0 +1,9 @@
+Loading images from dataset. This may take a while...
+Eliminating outliers in image seq2/frame00154.png: [1386/1387] scene coordinates inliers
+Not using image seq2/frame00036.png: [0/46] scene coordinates inliers
+Not using image seq2/frame00043.png: [0/46] scene coordinates inliers
+Eliminating outliers in image seq2/frame00218.png: [96/97] scene coordinates inliers
+Eliminating outliers in image seq1/frame00026.png: [1544/1550] scene coordinates inliers
+Eliminating outliers in image seq3/frame00044.png: [1185/1186] scene coordinates inliers
+Eliminating outliers in image seq1/frame00027.png: [808/814] scene coordinates inliers
+Start training...

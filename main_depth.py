@@ -101,8 +101,8 @@ class Depthestim:
 
                 depth_count = depth_data.shape[0]
 
-                x_min.append(depth_data[int(depth_count/3)])
-                x_max.append(depth_data[int(depth_count/9)])
+                x_min.append(depth_data[int(depth_count*0.3)])
+                x_max.append(depth_data[int(depth_count*0.9)])
         xmin = torch.unsqueeze(torch.unsqueeze(torch.FloatTensor(x_min), axis=1), axis=1)
         xmax = torch.unsqueeze(torch.unsqueeze(torch.FloatTensor(x_max), axis=1), axis=1)
         return xmin, xmax

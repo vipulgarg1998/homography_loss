@@ -38,76 +38,6 @@ import torchvision
 import urllib
 import zipfile
 
-# from 3d-ken-burns.common import *
-# from 3d-ken-burns.models.disparity-estimation import *
-# from 3d-ken-burns.models.disparity-adjustment import *
-# from 3d-ken-burns.models.disparity-refinement import *
-# from 3d-ken-burns.models.pointcloud-inpainting import *
-##########################################################
-
-exec(open('./3d-ken-burns/common.py', 'r').read())
-
-exec(open('./3d-ken-burns/models/disparity-estimation.py', 'r').read())
-exec(open('./3d-ken-burns/models/disparity-adjustment.py', 'r').read())
-exec(open('./3d-ken-burns/models/disparity-refinement.py', 'r').read())
-exec(open('./3d-ken-burns/models/pointcloud-inpainting.py', 'r').read())
-
-class Depthestim:
-    def __init__(self):
-        assert(int(str('').join(torch.__version__.split('.')[0:2])) >= 12) # requires at least pytorch version 1.2.0
-
-        # torch.set_grad_enabled(False) # make sure to not compute gradients for computational performance
-
-        # torch.backends.cudnn.enabled = True # make sure to use cudnn for computational performance
-
-        # objCommon = {}
-
-        # exec(open('./3d-ken-burns/common.py', 'r').read())
-
-        # exec(open('./3d-ken-burns/models/disparity-estimation.py', 'r').read())
-        # exec(open('./3d-ken-burns/models/disparity-adjustment.py', 'r').read())
-        # exec(open('./3d-ken-burns/models/disparity-refinement.py', 'r').read())
-        # exec(open('./3d-ken-burns/models/pointcloud-inpainting.py', 'r').read())
-
-    def get_file_names(self, dataset_folder):
-        raw_data_paths = []
-        for file in os.listdir(dataset_folder):
-            if file[-4:] in [".pgm", ".tif", ".png"]:
-                raw_data_paths.append(os.path.join(dataset_folder, file))
-        return raw_data_paths
-
-    def get_x_min_max(self, base_path, image_paths):
-        x_min = []
-        x_max = []
-        with torch.no_grad():
-            for image_path in image_paths:
-                npyImage = cv2.imread(filename=base_path + image_path, flags=cv2.IMREAD_COLOR)
-            
-                fltFocal = max(npyImage.shape[1], npyImage.shape[0]) / 2.0
-                fltBaseline = 40.0
-                
-                tenImage = torch.FloatTensor(np.ascontiguousarray(npyImage.transpose(2, 0, 1)[None, :, :, :].astype(np.float32) * (1.0 / 255.0))).cuda()
-                tenDisparity = disparity_estimation(tenImage)
-                tenDisparity = disparity_adjustment(tenImage, tenDisparity)
-                tenDisparity = disparity_refinement(torch.nn.functional.interpolate(input=tenImage, size=(tenDisparity.shape[2] * 4, tenDisparity.shape[3] * 4), mode='bilinear', align_corners=False), tenDisparity)
-                tenDisparity = torch.nn.functional.interpolate(input=tenDisparity, size=(tenImage.shape[2], tenImage.shape[3]), mode='bilinear', align_corners=False) * (max(tenImage.shape[2], tenImage.shape[3]) / 256.0)
-                tenDepth = (fltFocal * fltBaseline) / (tenDisparity + 0.0000001)
-
-                npyDisparity = tenDisparity[0, 0, :, :].cpu().numpy()
-                npyDepth = tenDepth[0, 0, :, :].cpu().numpy()
-
-                depth_data = np.sort(npyDepth, axis=None)
-                # print(f'depth map shape is {depth_data.shape}')
-
-                depth_count = depth_data.shape[0]
-
-                x_min.append(depth_data[int(depth_count/3)])
-                x_max.append(depth_data[int(depth_count/9)])
-        xmin = torch.unsqueeze(torch.unsqueeze(torch.FloatTensor(x_min), axis=1), axis=1)
-        xmax = torch.unsqueeze(torch.unsqueeze(torch.FloatTensor(x_max), axis=1), axis=1)
-        return xmin, xmax
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
@@ -140,10 +70,8 @@ if __name__ == '__main__':
     # Set the device
     device = 'cpu'
     if args.cuda:
-        device = 'cuda:2'
+        device = 'cuda:0'
 
-    # Create a Depth Estimator
-    depth_estimator = Depthestim()
 
     # Load model
     model = models.load_model(args.weights)

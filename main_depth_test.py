@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
         # Set the model to eval mode for test data
         model.eval()
-        t_errors, q_errors, reprojection_errors = [], [], []
+        t_errors, q_errors, reprojection_errors, img_names = [], [], [], []
 
         for batch in test_loader:
 
@@ -167,9 +167,18 @@ if __name__ == '__main__':
             q_errors.append(batch_q_errors)
             reprojection_errors += batch_reprojection_errors
 
+            mean_batch_intensities = (torch.mean(batch['image'], dim = [1, 2, 3]) - torch.min(batch['image']))/(torch.max(batch['image']) - torch.min(batch['image']))
+            for i in range(len(batch)):
+                # img_names += [(batch['image_file'][i], batch_reprojection_errors[i].mean(), batch['image'][i])]
+                img_names += [(batch['image_file'][i], batch_reprojection_errors[i].mean().cpu().detach().numpy(), mean_batch_intensities[i].cpu().detach().numpy())]
+
+        imgs_data = np.array(sorted(img_names, key = lambda x: x[1].item()))
+        
+        # mean_intensities = [torch.mean(img_data[2], dim = [0, 1, 2]) for img_data in imgs_data ]
+        print(f'Mean Intensities are {imgs_data}')
         # Log test errors
         log_errors(t_errors, q_errors, reprojection_errors, writer, epoch, 'test')
-
+        np.save('intensity_data.npy',imgs_data)
         # Log loss parameters, if there are any
         for p_name, p in criterion.named_parameters():
             writer.add_scalar(p_name, p, epoch)

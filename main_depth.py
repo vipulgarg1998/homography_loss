@@ -146,7 +146,7 @@ if __name__ == '__main__':
     depth_estimator = Depthestim()
 
     # Load model
-    model = models.load_model(args.weights)
+    model = models.load_model(args.weights, device=device)
     model.train()
     model.to(device)
 
